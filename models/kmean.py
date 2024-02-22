@@ -1,6 +1,13 @@
-#kmean
+import numpy as np
 
 class KMeans:
+    def __init__(self, init_type='k-means++', k=3, num_iterations=10):
+        self.init_type = init_type
+        self.k = k
+        self.num_iterations = num_iterations
+        self.centroids = []
+        self.clusters = []
+
     def euclidean_distance(self, p1, p2):
         return np.sqrt(np.sum(np.square(p1 - p2)))
 
@@ -19,15 +26,15 @@ class KMeans:
 
         return centroids
 
-    def kmeans_initialization(self, data, init_type, k):
+    def kmeans_initialization(self, data):
         centroids = []
 
         # Initial centroid selection
         random_idx = np.random.choice(data.shape[0])
         centroids.append(data[random_idx, :])
 
-        if init_type == 'k-means++':
-            for _ in range(k - 1):
+        if self.init_type == 'k-means++':
+            for _ in range(self.k - 1):
                 dist = []
                 for i in range(data.shape[0]):
                     point = data[i, :]
@@ -39,31 +46,31 @@ class KMeans:
                 random_idx = np.random.choice(data.shape[0], p=probabilities)
                 centroids.append(data[random_idx, :])
         else:
-            random_idxs = np.random.choice(data.shape[0], k - 1)
+            random_idxs = np.random.choice(data.shape[0], self.k - 1)
             centroids.extend(data[random_idxs, :])
 
         centroids = np.array(centroids)
 
         return centroids
 
-    def train(self, data, init_type, k, num_iterations):
+    def train(self, data):
         # Initialization
-        centroids = self.kmeans_initialization(data, init_type, k)
+        self.centroids = self.kmeans_initialization(data)
 
         # Assign data points to clusters
-        for _ in range(num_iterations):
+        for _ in range(self.num_iterations):
             # Create empty clusters
-            clusters = [[] for _ in range(k)]
+            self.clusters = [[] for _ in range(self.k)]
 
             # Assign data points to the nearest centroid
             for point in data:
-                distances = [self.euclidean_distance(point, centroid) for centroid in centroids]
+                distances = [self.euclidean_distance(point, centroid) for centroid in self.centroids]
                 nearest_centroid_idx = np.argmin(distances)
-                clusters[nearest_centroid_idx].append(point)
+                self.clusters[nearest_centroid_idx].append(point)
 
             # Update centroids
-            for i, cluster in enumerate(clusters):
+            for i, cluster in enumerate(self.clusters):
                 if len(cluster) > 0:
-                    centroids[i] = np.mean(cluster, axis=0)
+                    self.centroids[i] = np.mean(cluster, axis=0)
 
-        return centroids, clusters
+        return self.centroids, self.clusters
